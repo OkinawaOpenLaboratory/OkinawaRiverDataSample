@@ -109,6 +109,7 @@ Function Update-WaterLevels($data) {
     $waterLevels = $(Get-Content -Path "./waterLevels.json" | ConvertFrom-Json)
     $data = $($data | ConvertTo-Json | ConvertFrom-Json)
     $waterLevels += $data
+    $waterLevels = $(Filter-Past60Days $waterLevels)
     ConvertTo-Json $waterLevels -Depth 100 | Out-File "./waterLevels.json" -Encoding utf8
 }
 
@@ -116,7 +117,20 @@ Function Update-Rains($data) {
     $rains = $(Get-Content -Path "./rains.json" | ConvertFrom-Json)
     $data = $($data | ConvertTo-Json | ConvertFrom-Json)
     $rains += $data
+    $rains = $(Filter-Past60Days $rains)
     ConvertTo-Json $rains -Depth 100 | Out-File "./rains.json" -Encoding utf8
+}
+
+Function Filter-Past60Days($items) {
+    $date = Get-Date
+    $fromDate = $date.AddDays(-90)
+    $newItems = @()
+    Foreach($item in $items){
+        If($item.timestamp -gt $fromDate) {
+            $newItems += $item
+        }
+    }
+    Return $newItems
 }
 
 Main
